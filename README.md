@@ -11,8 +11,9 @@ In simple terms, the system tries to buy when the market is moving upward or whe
 
 A position is opened when:
 
-- The market shows an upward trend and momentum is healthy, **and** news sentiment is positive, or
+- The market shows an upward trend and momentum is healthy, and news sentiment is positive
 - The market is oversold (RSI below 30) but sentiment remains positive, suggesting a possible short-term rebound.
+- An EMA is an average price that gives more importance to recent prices, and in this strategy it is used to check if the market is moving upward before allowing a buy.
 
 ---
 
@@ -95,5 +96,4 @@ graph TD
 
 - Returns are moderate due to conservative exits.
 - Some profitable trends may be exited too early.
-- Performance depends on the quality of sentiment data. For further versions is mandatory to use LLM instead of just focusing on key words.
-
+- Performance depends on the quality of sentiment data. For further versions is mandatory to use LLM instead of just focusing on keywords.
