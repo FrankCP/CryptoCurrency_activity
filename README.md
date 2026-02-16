@@ -1,64 +1,69 @@
 ## 🧠 Strategy Overview
 
 ### Core Logic
-This strategy combines **Trend Following**, **Mean Reversion**, and **News-Based confirmation**.
+This strategy combines three ideas: **following the trend**, **buying short-term rebounds**, and **using news sentiment as confirmation**.
 
-The objective is to enter positions when price momentum and positive sentiment align, while exiting quickly when momentum weakens or risk increases. The strategy balances trade frequency and risk control by combining technical indicators with sentiment analysis.
+In simple terms, the system tries to buy when the market is moving upward or when price temporarily drops but news sentiment remains positive. The goal is not to catch every move, but to enter higher-probability situations and exit quickly when conditions worsen.
+
+The strategy focuses more on **stability and risk control** than on aggressive growth.
 
 ---
 
 ### Entry Conditions (Buy)
 
-A position is opened when **one of the following conditions** is satisfied:
+A position is opened when one of the following situations happens.
 
-#### 1. Trend Entry (Primary Mode)
-- EMA(10) > EMA(30)
-- RSI between **38 and 70**
-- Sentiment = **POSITIVE**
-- Sentiment Score ≥ **0.65**
+#### 1. Trend Entry
+The market is already moving up and conditions support continuation:
 
-This captures continuation moves during established uptrends.
+- Short-term trend is stronger than long-term trend (EMA10 > EMA30)
+- RSI shows momentum but is not overbought (between 38 and 70)
+- News sentiment is positive
+- Sentiment confidence is at least 0.65
 
-#### 2. Oversold Bounce Entry (Secondary Mode)
-- RSI ≤ **30**
-- Sentiment = **POSITIVE**
-- Sentiment Score ≥ **0.65**
+This allows the strategy to participate in ongoing upward movements.
 
-This allows participation in short-term rebounds after oversold conditions.
+#### 2. Oversold Bounce Entry
+The market has fallen and may rebound:
+
+- RSI is below 30 (oversold condition)
+- News sentiment is still positive
+- Sentiment confidence is at least 0.65
+
+This captures short recoveries after sharp drops.
 
 ---
 
 ### Exit Conditions (Sell)
 
-A position is closed when **any** of the following occurs:
+A position is closed whenever risk increases or the expected move has already happened:
 
-- **Stop Loss:** Loss reaches approximately **-5%**
-- **Take Profit:** Profit reaches approximately **+8%**
-- **Trailing Stop:** Price falls about **5%** from the highest level since entry
-- **Negative Sentiment Exit:** Sentiment becomes NEGATIVE with score ≥ **0.70**
-- **Time Stop:** Position held for **4 days** with profit < **+1.5%**
+- The loss reaches about **5%** (stop loss)
+- The profit reaches about **8%** (take profit)
+- Price drops roughly **5%** from its highest level after entry (trailing stop)
+- News sentiment turns clearly negative
+- The trade lasts more than 4 days without meaningful profit
 
-These exit rules prioritize capital preservation and allow faster capital rotation.
+These rules help protect capital and keep trades short and controlled.
 
 ---
 
-### Decision Flowchart (Mermaid)
+### Decision Flowchart
 
 ```mermaid
 graph TD
-    Start[Market Data Input] --> Trend{EMA10 > EMA30?}
+    Start[Market + News Input] --> Trend{EMA10 > EMA30?}
+    Trend -->|Yes| RSItrend{38 <= RSI <= 70?}
+    Trend -->|No| RSIbounce{RSI <= 30?}
 
-    Trend -->|Yes| RSITrend{38 <= RSI <= 70?}
-    Trend -->|No| RSIBounce{RSI <= 30?}
+    RSItrend -->|Yes| NewsPos{Sentiment POS & score >= 0.65?}
+    RSItrend -->|No| Hold[Hold]
 
-    RSITrend -->|Yes| NewsOK{Sentiment POS & score >= 0.65?}
-    RSITrend -->|No| Hold[Hold]
+    RSIbounce -->|Yes| NewsPos
+    RSIbounce -->|No| Hold
 
-    RSIBounce -->|Yes| NewsOK
-    RSIBounce -->|No| Hold
-
-    NewsOK -->|Yes| Buy[Enter Position]
-    NewsOK -->|No| Hold
+    NewsPos -->|Yes| Buy[Enter Position]
+    NewsPos -->|No| Hold
 
     Buy --> Monitor[Holding]
 
@@ -68,11 +73,12 @@ graph TD
     Monitor --> TP{PnL >= +8%?}
     TP -->|Yes| Sell
 
-    Monitor --> Trail{Drop ~5% from peak?}
-    Trail -->|Yes| Sell
+    Monitor --> TS{Trailing stop hit?}
+    TS -->|Yes| Sell
 
     Monitor --> NegNews{Sentiment NEG & score >= 0.70?}
     NegNews -->|Yes| Sell
 
     Monitor --> TimeStop{Held >= 4 days & PnL < +1.5%?}
     TimeStop -->|Yes| Sell
+```
